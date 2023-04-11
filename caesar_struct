@@ -1,0 +1,37 @@
+struct CaesarCipher {
+    shift: u8,
+}
+
+impl CaesarCipher {
+    fn new(shift: u8) -> Self {
+        Self { shift }
+    }
+
+    fn encrypt(&self, message: &str) -> String {
+        message
+            .chars()
+            .map(|c| {
+                if c.is_ascii_alphabetic() {
+                    let base = if c.is_ascii_lowercase() { b'a' } else { b'A' };
+                    ((c as u8 - base + self.shift) % 26 + base) as char
+                } else {
+                    c
+                }
+            })
+            .collect()
+    }
+
+    fn decrypt(&self, message: &str) -> String {
+        self.encrypt(&message)
+    }
+}
+
+fn main() {
+    let cipher = CaesarCipher::new(3);
+    let plaintext = "Hello, world!";
+    let ciphertext = cipher.encrypt(plaintext);
+    let decrypted = cipher.decrypt(&ciphertext);
+    println!("Plaintext: {}", plaintext);
+    println!("Ciphertext: {}", ciphertext);
+    println!("Decrypted: {}", decrypted);
+}
