@@ -1,28 +1,48 @@
 struct CaesarCipher {
-    shift: u8,
+    shift: usize,
 }
 
 impl CaesarCipher {
-    fn new(shift: u8) -> Self {
+    fn new(shift: usize) -> Self {
         Self { shift }
     }
 
-    fn encrypt(&self, message: &str) -> String {
-        message
-            .chars()
-            .map(|c| {
-                if c.is_ascii_alphabetic() {
-                    let base = if c.is_ascii_lowercase() { b'a' } else { b'A' };
-                    ((c as u8 - base + self.shift) % 26 + base) as char
-                } else {
-                    c
+    fn encrypt(&self, plain_text: &str) -> String {
+        let mut cipher_text = String::new();
+        for c in plain_text.chars() {
+            let shifted_char = match c {
+                'A'..='Z' => {
+                    let base = 'A' as u8;
+                    (((c as u8 - base + self.shift as u8) % 26) + base) as char
                 }
-            })
-            .collect()
+                'a'..='z' => {
+                    let base = 'a' as u8;
+                    (((c as u8 - base + self.shift as u8) % 26) + base) as char
+                }
+                _ => c,
+            };
+            cipher_text.push(shifted_char);
+        }
+        cipher_text
     }
 
-    fn decrypt(&self, message: &str) -> String {
-        self.encrypt(&message)
+    fn decrypt(&self, cipher_text: &str) -> String {
+        let mut plain_text = String::new();
+        for c in cipher_text.chars() {
+            let shifted_char = match c {
+                'A'..='Z' => {
+                    let base = 'A' as u8;
+                    (((c as u8 - base + 26 - self.shift as u8) % 26) + base) as char
+                }
+                'a'..='z' => {
+                    let base = 'a' as u8;
+                    (((c as u8 - base + 26 - self.shift as u8) % 26) + base) as char
+                }
+                _ => c,
+            };
+            plain_text.push(shifted_char);
+        }
+        plain_text
     }
 }
 
