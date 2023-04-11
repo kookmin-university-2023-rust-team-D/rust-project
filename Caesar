@@ -1,0 +1,33 @@
+use std::io;
+
+fn main() {
+    // 입력 받을 평문과 키 값을 각각 문자열로 선언합니다.
+    let mut plain_text = String::new();
+    let mut key_str = String::new();
+
+    // 평문과 키 값을 각각 입력 받습니다.
+    println!("Enter plain text: ");
+    io::stdin().read_line(&mut plain_text).unwrap();
+    println!("Enter key: ");
+    io::stdin().read_line(&mut key_str).unwrap();
+
+    // 키 값을 정수로 변환합니다.
+    let key: i32 = key_str.trim().parse().unwrap();
+
+    // 암호화된 문자열을 저장할 변수를 선언합니다.
+    let mut encrypted_text = String::new();
+
+    // 평문의 각 문자를 키 값만큼 밀어서 암호화합니다.
+    for c in plain_text.chars() {
+        if c.is_ascii_alphabetic() {
+            let base = if c.is_ascii_uppercase() { b'A' } else { b'a' };
+            let code = (c as u8 - base + key as u8) % 26 + base;
+            encrypted_text.push(code as char);
+        } else {
+            encrypted_text.push(c);
+        }
+    }
+
+    // 암호화된 문자열을 출력합니다.
+    println!("Encrypted text: {}", encrypted_text);
+}
