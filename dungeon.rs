@@ -2,6 +2,8 @@
 // rand 라이브러리를 빌려옵니다. 랜덤함수를 사용할 수 있습니다.
 use rand::Rng;
 use std::io::{self, Write};
+use std::fs::File;
+use std::io::{BufRead, BufReader};
 
 // 플레이어, 몬스터의 구조체를 정의합니다. hp가 0이 되면 죽습니다.
 // 무기와 방어구를 만든다면 무기와 방어구의 구조체도 정의해야 할 수 있습니다.
@@ -12,10 +14,61 @@ struct Player {
     armor: String
 }
 
+impl From<&str> for Player {
+    fn from(filename: &str) -> Self {
+        let file = File::open(filename).unwrap();
+        let reader = BufReader::new(file);
+        let mut lines = reader.lines().map(|l| l.unwrap());
+
+        let line = lines.next().unwrap();
+
+        let mut status = line.split_whitespace().map(|s| s);
+
+        let hp = status.next().unwrap().parse().unwrap();
+        let gold = status.next().unwrap().parse().unwrap();
+        let weapon = status.next().unwrap();
+        let armor = status.next().unwrap();
+
+        Player {
+            hp,
+            gold,
+            weapon: weapon.to_string(),
+            armor: armor.to_string(),
+        }
+    }
+}
+
 struct Monster {
+    name: String,
     hp: i32,
+    damage: i32,
     gold: i32
 }
+
+impl From<&str> for Monster {
+    fn from(filename: &str) -> Self {
+        let mut randum = rand::thread_rng();
+        let num_monster = randum.gen_range(0..=4);
+        let file = File::open(filename).unwrap();
+        let reader = BufReader::new(file);
+        let line = reader.lines().nth(num_monster).expect("파일을 읽을 수 없습니다").unwrap();
+
+        let mut status = line.split_whitespace().map(|s| s);
+
+        let name = status.next().unwrap();
+        let hp = status.next().unwrap().parse().unwrap();
+        let damage = status.next().unwrap().parse().unwrap();
+        let gold = status.next().unwrap().parse().unwrap();
+
+        Monster {
+            name : name.to_string(),
+            hp,
+            damage,
+            gold,
+        }
+    }
+}
+
 
 // 이벤트는 총 4가지로 설정하였습니다.
 // combat은 몬스터와의 전투, shop은 상점, special은 특별한 랜덤 이벤트, rest는 휴식 장소로 플레이어의 체력을 회복할 수 있습니다.
@@ -33,12 +86,13 @@ fn main() {
     let mut rng = rand::thread_rng();
     
     //플레이어를 설정합니다.
-    let mut player = Player {
+    /*let mut players = Player {
         hp: 100,
         gold: 0,
         weapon: String::from("검"),
         armor: String::from("갑옷"),
-    };
+    };*/
+    let mut player = Player::from("player.txt");
     
     // 이벤트를 결정하기 위해 벡터를 생성하여, 랜덤으로 이벤트를 삽입합니다.
     let mut events = vec![];
@@ -49,10 +103,7 @@ fn main() {
         let event_type = rng.gen_range(0..4);
         let event = match event_type {
             0 => {
-                let monster = Monster {
-                    hp : rng.gen_range(50..=100),
-                    gold: rng.gen_range(10..=30)
-                };
+                let monster = Monster::from("monster.txt");
                 Event::Combat {
                     monster : monster
                 }
@@ -66,7 +117,9 @@ fn main() {
     }
     events.push(Event::Combat {
         monster : Monster {
+            name: "middle Boss".to_string(),
             hp : 200,
+            damage: 15,
             gold: 100
         }
     });
@@ -77,7 +130,7 @@ fn main() {
             Event::Combat {                         // 몬스터와 만났을 때
                 monster
             } => {
-                println !("몬스터를 만났습니다!");
+                println !("{}를 만났습니다!", monster.name);
                 loop {
                     println !("플레이어 HP: {}, 골드: {}", player.hp, player.gold);
                     println !("몬스터 HP: {}", monster.hp);
@@ -103,9 +156,8 @@ fn main() {
                             break;
                         }
 
-                        let damage = rng.gen_range(5..=15);
-                        println !("몬스터가 {}의 피해를 입혔습니다!", damage);
-                        player.hp -= damage;
+                        println !("몬스터가 {}의 피해를 입혔습니다!", monster.damage);
+                        player.hp -= monster.damage;
 
                         if player.hp <= 0 {
                             println !("플레이어가 사망했습니다!");
@@ -172,8 +224,10 @@ fn main() {
     }
     //마지막은 보스를 만난다.
     println !("보스를 만났습니다!");
-    let mut boss = Monster {
+    let mut boss = Monster{
+        name: "Boss".to_string(),
         hp : 300,
+        damage: 15,
         gold: 200
     };
     loop {
@@ -199,9 +253,8 @@ fn main() {
                 return;
             }
 
-            let damage = rng.gen_range(10..=20);
-            println !("보스가 {}의 피해를 입혔습니다!", damage);
-            player.hp -= damage;
+            println !("보스가 {}의 피해를 입혔습니다!", boss.damage);
+            player.hp -= boss.damage;
 
             if player.hp <= 0 {
                 println !("플레이어가 사망했습니다. 게임 오버!");
