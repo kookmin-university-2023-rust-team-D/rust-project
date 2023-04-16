@@ -2,102 +2,12 @@
 // rand 라이브러리를 빌려옵니다. 랜덤함수를 사용할 수 있습니다.
 use rand::Rng;
 use std::io::{self, Write};
-use std::fs::File;
-use std::io::{BufRead, BufReader, Result, Lines};
-
-
-// 재하님이 작성하신 open_file입니다. 
-pub fn open_file(filename: &str) -> Result<Lines<BufReader<File>>> {
-    let file = File::open(filename)?;
-    Ok(BufReader::new(file).lines())
-}
-
-
-// 플레이어, 몬스터의 구조체를 정의합니다. hp가 0이 되면 죽습니다.
-// 무기와 방어구를 만든다면 무기와 방어구의 구조체도 정의해야 할 수 있습니다.
-struct Player {
-    hp: i32,
-    gold: i32,
-    weapon: String,
-    armor: String
-}
-
-impl From<&str> for Player {
-    fn from(filename: &str) -> Self {
-        let lines = open_file(filename);
-
-        let mut lines = match  lines{
-            Ok(lines) => lines,
-            Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
-        };
-        let line = lines.next().expect("파일을 읽을 수 없습니다!");
-        let status_str = match line {
-            Ok(val) => val,
-            Err(_err) => panic!("파일을 읽을 수 없습니다!"),
-            };
-            
-        let mut status = status_str.split_whitespace().map(|s| s);
-
-        let hp = status.next().unwrap().parse::<i32>().unwrap();
-        let gold = status.next().unwrap().parse::<i32>().unwrap();
-        let weapon = status.next().unwrap();
-        let armor = status.next().unwrap();
-
-        Player {
-            hp,
-            gold,
-            weapon: weapon.to_string(),
-            armor: armor.to_string(),
-        }
-    }
-}
-
-struct Monster {
-    name: String,
-    hp: i32,
-    damage: i32,
-    gold: i32
-}
-
-impl From<&str> for Monster {
-    fn from(filename: &str) -> Self {
-        let mut randum = rand::thread_rng();
-        let num_monster = randum.gen_range(0..=4);
-        let lines = open_file(filename);
-
-        let mut lines = match lines{
-            Ok(lines) => lines,
-            Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
-        };
-
-        let line = lines.nth(num_monster).expect("파일을 읽을 수 없습니다!");
-        let status_str = match line {
-            Ok(val) => val,
-            Err(_err) => panic!("파일을 읽을 수 없습니다!"),
-            };
-            
-        let mut status = status_str.split_whitespace().map(|s| s);
-
-        let name = status.next().unwrap();
-        let hp = status.next().unwrap().parse().unwrap();
-        let damage = status.next().unwrap().parse().unwrap();
-        let gold = status.next().unwrap().parse().unwrap();
-
-        Monster {
-            name : name.to_string(),
-            hp,
-            damage,
-            gold,
-        }
-    }
-}
-
-
+mod loader;
 // 이벤트는 총 4가지로 설정하였습니다.
 // combat은 몬스터와의 전투, shop은 상점, special은 특별한 랜덤 이벤트, rest는 휴식 장소로 플레이어의 체력을 회복할 수 있습니다.
 enum Event {
     Combat {
-        monster : Monster
+        monster : loader::Monster
     },
     Shop,
     Special,
@@ -107,7 +17,7 @@ enum Event {
 //메인 함수 시작
 fn main() {
     let mut rng = rand::thread_rng();
-    let mut player = Player::from("./src/player.txt");
+    let mut player = loader::Player::from("./src/player.txt");
     
     // 이벤트를 결정하기 위해 벡터를 생성하여, 랜덤으로 이벤트를 삽입합니다.
     let mut events = vec![];
@@ -118,7 +28,7 @@ fn main() {
         let event_type = rng.gen_range(0..4);
         let event = match event_type {
             0 => {
-                let monster = Monster::from("./src/monster.txt");
+                let monster = loader::Monster::from("./src/monster.txt");
                 Event::Combat {
                     monster : monster
                 }
@@ -131,7 +41,7 @@ fn main() {
         events.push(event);
     }
     events.push(Event::Combat {
-        monster : Monster {
+        monster : loader::Monster {
             name: "middle Boss".to_string(),
             hp : 200,
             damage: 15,
@@ -239,7 +149,7 @@ fn main() {
     }
     //마지막은 보스를 만난다.
     println !("보스를 만났습니다!");
-    let mut boss = Monster{
+    let mut boss = loader::Monster{
         name: "Boss".to_string(),
         hp : 300,
         damage: 15,
