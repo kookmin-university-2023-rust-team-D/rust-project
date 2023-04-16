@@ -1,7 +1,6 @@
 //chatGPT를 활용해 코드를 만들었습니다 모듈화가 안되어있는 점은 죄송합니다.
 // rand 라이브러리를 빌려옵니다. 랜덤함수를 사용할 수 있습니다.
 use rand::Rng;
-use std::error::Error;
 use std::io::{self, Write};
 use std::fs::File;
 use std::io::{BufRead, BufReader, Result, Lines};
@@ -63,8 +62,6 @@ struct Monster {
 
 impl From<&str> for Monster {
     fn from(filename: &str) -> Self {
-        let mut randum = rand::thread_rng();
-        let num_monster = randum.gen_range(0..=4);
         let lines = open_file(filename);
 
         let mut lines = match lines{
@@ -109,14 +106,6 @@ enum Event {
 //메인 함수 시작
 fn main() {
     let mut rng = rand::thread_rng();
-    
-    //플레이어를 설정합니다.
-    /*let mut players = Player {
-        hp: 100,
-        gold: 0,
-        weapon: String::from("검"),
-        armor: String::from("갑옷"),
-    };*/
     let mut player = Player::from("./src/player.txt");
     
     // 이벤트를 결정하기 위해 벡터를 생성하여, 랜덤으로 이벤트를 삽입합니다.
