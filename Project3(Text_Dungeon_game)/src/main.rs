@@ -30,7 +30,6 @@ impl From<&str> for Player {
             Ok(lines) => lines,
             Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
         };
-        
         let line = lines.next().expect("파일을 읽을 수 없습니다!");
         let status_str = match line {
             Ok(val) => val,
@@ -62,6 +61,8 @@ struct Monster {
 
 impl From<&str> for Monster {
     fn from(filename: &str) -> Self {
+        let mut randum = rand::thread_rng();
+        let num_monster = randum.gen_range(0..=4);
         let lines = open_file(filename);
 
         let mut lines = match lines{
@@ -69,7 +70,7 @@ impl From<&str> for Monster {
             Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
         };
 
-        let line = lines.next().expect("파일을 읽을 수 없습니다!");
+        let line = lines.nth(num_monster).expect("파일을 읽을 수 없습니다!");
         let status_str = match line {
             Ok(val) => val,
             Err(_err) => panic!("파일을 읽을 수 없습니다!"),
