@@ -94,6 +94,7 @@ fn main() {
                     } else {
                         println !("잘못된 입력입니다. 다시 입력해주세요.");
                     }
+                    println !("");
                 }
             }
             Event::Shop => { //상점에서
@@ -132,17 +133,23 @@ fn main() {
                 } else {
                     println !("잘못된 입력입니다. 다시 입력해주세요.");
                 }
+                println !("");
+
             }
             // 특별 이벤트는 아직 생성 못함
             Event::Special => {
                 println !("특별 이벤트를 발견했습니다!");
                 println !("특별 이벤트를 클리어했습니다.");
+                println !("");
+
             }
             Event::Rest => { // 휴식장소에서는 플레이어의 hp 회복
                 println !("휴식을 취할 수 있는 장소를 발견했습니다.");
                 println !("플레이어 HP: {}", player.hp);
                 player.hp += 20;
                 println !("체력이 20 회복되었습니다. 현재 체력: {}", player.hp);
+                println !("");
+
             }
         }
         current_event += 1;
@@ -185,10 +192,12 @@ fn main() {
                 println !("플레이어가 사망했습니다. 게임 오버!");
                 return;
             }
+            println !("");
         } else if input.trim() == "도망" {
             let success = rng.gen_bool(0.5);
             if success {
                 println !("플레이어가 도망쳤습니다.");
+                println !("");
                 return;
             } else {
                 println !("도망에 실패했습니다. 보스의 공격을 받습니다.");
