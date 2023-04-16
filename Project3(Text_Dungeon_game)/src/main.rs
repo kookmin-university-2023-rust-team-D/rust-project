@@ -70,6 +70,7 @@ fn main() {
                         .unwrap();
 
                     if input.trim() == "공격" {
+                        println!("+------------------------------------+");
                         let damage = rng.gen_range(5..=15);
                         println !("플레이어가 {}의 피해를 입혔습니다!", damage);
                         monster.hp -= damage;
@@ -94,7 +95,8 @@ fn main() {
                     } else {
                         println !("잘못된 입력입니다. 다시 입력해주세요.");
                     }
-                    println !("");
+                    println!("+------------------------------------+");
+                    println!("");
                 }
             }
             Event::Shop => { //상점에서
