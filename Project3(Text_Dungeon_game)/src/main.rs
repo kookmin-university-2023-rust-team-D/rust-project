@@ -1,9 +1,18 @@
 //chatGPT를 활용해 코드를 만들었습니다 모듈화가 안되어있는 점은 죄송합니다.
 // rand 라이브러리를 빌려옵니다. 랜덤함수를 사용할 수 있습니다.
 use rand::Rng;
+use std::error::Error;
 use std::io::{self, Write};
 use std::fs::File;
-use std::io::{BufRead, BufReader};
+use std::io::{BufRead, BufReader, Result, Lines};
+
+
+// 재하님이 작성하신 open_file입니다. 
+pub fn open_file(filename: &str) -> Result<Lines<BufReader<File>>> {
+    let file = File::open(filename)?;
+    Ok(BufReader::new(file).lines())
+}
+
 
 // 플레이어, 몬스터의 구조체를 정의합니다. hp가 0이 되면 죽습니다.
 // 무기와 방어구를 만든다면 무기와 방어구의 구조체도 정의해야 할 수 있습니다.
@@ -16,16 +25,23 @@ struct Player {
 
 impl From<&str> for Player {
     fn from(filename: &str) -> Self {
-        let file = File::open(filename).unwrap();
-        let reader = BufReader::new(file);
-        let mut lines = reader.lines().map(|l| l.unwrap());
+        let lines = open_file(filename);
 
-        let line = lines.next().unwrap();
+        let mut lines = match  lines{
+            Ok(lines) => lines,
+            Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
+        };
+        
+        let line = lines.next().expect("파일을 읽을 수 없습니다!");
+        let status_str = match line {
+            Ok(val) => val,
+            Err(_err) => panic!("파일을 읽을 수 없습니다!"),
+            };
+            
+        let mut status = status_str.split_whitespace().map(|s| s);
 
-        let mut status = line.split_whitespace().map(|s| s);
-
-        let hp = status.next().unwrap().parse().unwrap();
-        let gold = status.next().unwrap().parse().unwrap();
+        let hp = status.next().unwrap().parse::<i32>().unwrap();
+        let gold = status.next().unwrap().parse::<i32>().unwrap();
         let weapon = status.next().unwrap();
         let armor = status.next().unwrap();
 
@@ -49,11 +65,20 @@ impl From<&str> for Monster {
     fn from(filename: &str) -> Self {
         let mut randum = rand::thread_rng();
         let num_monster = randum.gen_range(0..=4);
-        let file = File::open(filename).unwrap();
-        let reader = BufReader::new(file);
-        let line = reader.lines().nth(num_monster).expect("파일을 읽을 수 없습니다").unwrap();
+        let lines = open_file(filename);
 
-        let mut status = line.split_whitespace().map(|s| s);
+        let mut lines = match lines{
+            Ok(lines) => lines,
+            Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
+        };
+
+        let line = lines.next().expect("파일을 읽을 수 없습니다!");
+        let status_str = match line {
+            Ok(val) => val,
+            Err(_err) => panic!("파일을 읽을 수 없습니다!"),
+            };
+            
+        let mut status = status_str.split_whitespace().map(|s| s);
 
         let name = status.next().unwrap();
         let hp = status.next().unwrap().parse().unwrap();
@@ -92,7 +117,7 @@ fn main() {
         weapon: String::from("검"),
         armor: String::from("갑옷"),
     };*/
-    let mut player = Player::from("player.txt");
+    let mut player = Player::from("./src/player.txt");
     
     // 이벤트를 결정하기 위해 벡터를 생성하여, 랜덤으로 이벤트를 삽입합니다.
     let mut events = vec![];
@@ -103,7 +128,7 @@ fn main() {
         let event_type = rng.gen_range(0..4);
         let event = match event_type {
             0 => {
-                let monster = Monster::from("monster.txt");
+                let monster = Monster::from("./src/monster.txt");
                 Event::Combat {
                     monster : monster
                 }
