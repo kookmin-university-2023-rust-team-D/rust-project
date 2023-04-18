@@ -57,21 +57,18 @@ impl From<&str> for Monster {
         let num_monster = randum.gen_range(0..=4);
         let lines = open_file(filename);
 
-        // let lines = open_file(filename);
-
         let mut lines = match lines{
             Ok(lines) => lines,
             Err(err) => panic!("파일을 여는 도중에 문제가 생겼습니다! {:?}", err),
         };
 
         let line = lines.nth(num_monster).expect("파일을 읽을 수 없습니다!");
-        let status_str = match line {
+        let status_str = match &line {
             Ok(val) => val,
             Err(_err) => panic!("파일을 읽을 수 없습니다!"),
             };
             
         let mut status = status_str.split_whitespace().map(|s| s);
-
         let name = status.next().unwrap();
         let hp = status.next().unwrap().parse().unwrap();
         let damage = status.next().unwrap().parse().unwrap();
